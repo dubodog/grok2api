@@ -89,21 +89,50 @@ fi
 mkdir -p "${PYTHON_DIR}"
 
 TMP_ZIP="/tmp/${PYTHON_ZIP}"
-# 用 Python urllib 下载（避开 macOS LibreSSL / curl 代理 SSL 问题）
+# 用 Python urllib 下载；VPN/代理环境下 SSL 握手常被中断，
+# 先尝试正常 SSL，失败后自动回退到宽松 SSL（忽略证书校验）。
 "${HOST_PYTHON}" - <<PYEOF
-import urllib.request, sys
-url = "${PYTHON_URL}"
+import urllib.request, ssl, sys
+
+url  = "${PYTHON_URL}"
 dest = "${TMP_ZIP}"
+
+def download(url, dest, ctx=None):
+    req = urllib.request.Request(url, headers={"User-Agent": "Python-urllib/3"})
+    open_kwargs = {"context": ctx} if ctx else {}
+    with urllib.request.urlopen(req, **open_kwargs) as resp:
+        total = int(resp.headers.get("Content-Length", 0))
+        done  = 0
+        with open(dest, "wb") as f:
+            while True:
+                chunk = resp.read(1 << 16)   # 64 KB
+                if not chunk:
+                    break
+                f.write(chunk)
+                done += len(chunk)
+                if total:
+                    pct = min(100, done * 100 // total)
+                    sys.stdout.write(f"\r      {pct:3d}%  {done/1048576:.1f} MB")
+                    sys.stdout.flush()
+    print()
+
 print(f"      下载中：{url}")
-def progress(block, block_size, total):
-    done = block * block_size
-    if total > 0:
-        pct = min(100, done * 100 // total)
-        mb = done / 1024 / 1024
-        sys.stdout.write(f"\r      {pct:3d}%  {mb:.1f} MB")
-        sys.stdout.flush()
-urllib.request.urlretrieve(url, dest, reporthook=progress)
-print()
+# ── 尝试 1：正常 SSL ──────────────────────────────────────────
+try:
+    download(url, dest)
+except Exception as e1:
+    print(f"\n      [WARN] 正常 SSL 失败（{type(e1).__name__}: {e1}）")
+    print(      "      [INFO] VPN/代理环境，切换为宽松 SSL 模式重试...")
+    # ── 尝试 2：宽松 SSL（跳过证书校验，适合代理/VPN 拦截场景） ──
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode    = ssl.CERT_NONE
+    try:
+        download(url, dest, ctx)
+    except Exception as e2:
+        print(f"\n      [ERROR] 下载失败：{e2}")
+        print(          "      请检查网络，或手动下载后放至 /tmp/${PYTHON_ZIP}")
+        sys.exit(1)
 PYEOF
 
 echo "      解压中..."
