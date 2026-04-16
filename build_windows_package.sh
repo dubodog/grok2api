@@ -142,6 +142,9 @@ echo "[3/4] 下载 Windows 依赖包（win_amd64 / cp313）..."
 echo "      （使用本机 pip 跨平台下载，不影响本机环境）"
 mkdir -p "${WHEELS_DIR}"
 
+# 注意：pip 在非 Windows 宿主机上跨平台下载时，不会自动解析
+# "sys_platform == 'win32'" 这类条件依赖（如 loguru 依赖的 win32-setctime）。
+# 解决方案：将所有 Windows 专属包直接写入 requirements.txt，绕过条件判断。
 # 在项目目录外运行，避开 .python-version 的 pyenv 干扰
 (cd /tmp && $HOST_PIP download \
     --platform win_amd64 \

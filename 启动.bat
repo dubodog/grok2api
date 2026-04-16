@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 set "APP_DIR=%~dp0"
 if "%APP_DIR:~-1%"=="\" set "APP_DIR=%APP_DIR:~0,-1%"
 set "PYTHON=%APP_DIR%\python\python.exe"
