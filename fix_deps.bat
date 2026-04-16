@@ -22,7 +22,7 @@ echo.
 echo SITE_PACKAGES = pathlib.Path(r"%APP_DIR%\python\Lib\site-packages"^)
 echo SITE_PACKAGES.mkdir(parents=True, exist_ok=True^)
 echo.
-echo MISSING = ["win32-setctime"]
+echo MISSING = ["colorama", "win32-setctime"]
 echo.
 echo for pkg in MISSING:
 echo     print(f"[INFO] Installing {pkg} from PyPI..."^)

@@ -9,6 +9,9 @@ fastapi>=0.119.0
 granian>=2.7.2
 greenlet>=3.3.1
 loguru>=0.7.3
+# loguru 在 Windows 上的两个条件依赖（sys_platform=="win32"），
+# pip 跨平台下载时不会自动解析，须在此显式声明。
+colorama>=0.3.4
 win32-setctime>=1.2.0
 orjson>=3.11.4
 pydantic>=2.12.3
