@@ -27,6 +27,9 @@ venv/
 ENV/
 env/
 
+# Windows 部署包（由 build_windows_package.sh 生成，不进 git）
+python/
+
 # IDE
 .vscode/
 .idea/

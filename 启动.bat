@@ -4,7 +4,7 @@ if "%APP_DIR:~-1%"=="\" set "APP_DIR=%APP_DIR:~0,-1%"
 set "PYTHON=%APP_DIR%\python\python.exe"
 if not exist "%PYTHON%" (
     echo [ERROR] Python not found at %PYTHON%
-    echo [INFO]  Please run 安装依赖.bat first to set up the Python environment.
+    echo [INFO]  Please run build_windows_package.sh on macOS/Linux to generate the python\ folder.
     pause
     exit /b 1
 )
